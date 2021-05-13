@@ -1,0 +1,96 @@
+---
+title: "GLM regressoin -Census data"
+author: "Zoe"
+date: "5/11/2021"
+output: 
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = FALSE, warning = FALSE)
+
+```
+
+## R Markdown
+
+```{r libraries}
+library(plm)
+library(data.table)
+library(DT)
+```
+
+
+```{r import data}
+# import data 
+df = read.csv("weeks.csv")
+num.lines <- 100
+question.counter <- 0
+```
+
+```{r show dt}
+dat <- fread("weeks.csv")
+datatable(dat,rownames = TRUE)
+```
+```
+
+```{r distribution of dv}
+library(ggplot2)
+ggplot(df, aes(x = Value)) +
+    geom_density(alpha = .2, fill = "#FF6666")
+
+```
+The distribution of outcome looks pretty normal
+
+
+```{r subset groups gender}
+df_gender = subset(df, Group == 'gender')
+df_gender
+
+```
+
+GLM by gender
+```{r glm1 gender}
+fit <- glm(Value ~ Subgroup+Week, data=df_gender, family=Gamma(link = 'log'))
+summary(fit)
+```
+
+ GLM by Race
+```{r subset groups race}
+df_race = subset(df, Group == 'race')
+df_race
+```
+
+
+```{r glm race}
+fitrace <- glm(Value ~ Subgroup+Week, data=df_race, family=Gamma(link = 'log'))
+summary(fitrace)
+
+```
+
+GLM by education
+
+```{r subset groups education}
+df_education = subset(df, Group == 'education')
+```
+
+
+```{r glm3 educaton}
+fiteducation <- glm(Value ~ Subgroup+Week, data=df_education, family=Gamma(link = "log"))
+
+summary(fiteducation)
+```
+
+GLM by age
+
+```{r subset age groups}
+df_age = subset(df, Group == 'age')
+```
+
+
+```{r glm age}
+fitage <- glm(Value ~ Subgroup+Week, data=df_age, family=Gamma (link = 'log'))
+summary(fitage)
+```

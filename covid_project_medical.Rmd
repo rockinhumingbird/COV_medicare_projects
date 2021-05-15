@@ -14,14 +14,20 @@ knitr::opts_chunk$set(echo = TRUE,message = FALSE, warning = FALSE)
 
 ```
 
-## R Markdown
 
+### Load libaries
 ```{r libraries}
 library(plm)
 library(data.table)
 library(DT)
+library(rmarkdown)
+library(emmeans)
+library(finalfit)
+library(knitr)
 ```
 
+
+### Import data
 
 ```{r import data}
 # import data 
@@ -34,27 +40,52 @@ question.counter <- 0
 dat <- fread("weeks.csv")
 datatable(dat,rownames = TRUE)
 ```
-```
+
+
+####The distribution of outcome looks pretty normal??
 
 ```{r distribution of dv}
 library(ggplot2)
 ggplot(df, aes(x = Value)) +
     geom_density(alpha = .2, fill = "#FF6666")
+```
+```{r grouptogether}
+fit11 <- glm(Value ~ Subgroup+Week+Group*Week, data=df, family=Gamma(link = 'log'))
+summary(fit11)
 
 ```
-The distribution of outcome looks pretty normal
 
+
+
+```{r change week to factor}
+df$Week<-as.factor(df$Week)
+```
 
 ```{r subset groups gender}
 df_gender = subset(df, Group == 'gender')
 df_gender
-
 ```
 
 GLM by gender
 ```{r glm1 gender}
-fit <- glm(Value ~ Subgroup+Week, data=df_gender, family=Gamma(link = 'log'))
-summary(fit)
+fitgender <- glm(Value ~ Subgroup+Week, data=df_gender, family=Gamma(link = 'log'))
+summary(fitgender)
+
+# Compute the analysis of variance
+gender.aov <- aov(Value ~ Subgroup+Week, data = df_gender)
+# Summary of the analysis
+summary(gender.aov)
+```
+
+```{r plot1}
+emmip(fitgender, Subgroup ~ Week)
+gendermeans<- emmeans(fitgender,"Subgroup", type = "response")
+pairs(gendermeans, reverse = TRUE)
+gendermeans
+```
+
+```{r kable, echo = FALSE, results='asis'}
+kable(gendermeans)
 ```
 
  GLM by Race
@@ -67,13 +98,23 @@ df_race
 ```{r glm race}
 fitrace <- glm(Value ~ Subgroup+Week, data=df_race, family=Gamma(link = 'log'))
 summary(fitrace)
+race.aov <- aov(Value ~ Subgroup+Week, data = df_race)
+# Summary of the analysis
+summary(race.aov)
 
+```
+
+
+
+```{r plot2}
+emmip(fitrace, Subgroup ~ Week)
 ```
 
 GLM by education
 
 ```{r subset groups education}
 df_education = subset(df, Group == 'education')
+df_education
 ```
 
 
@@ -81,6 +122,20 @@ df_education = subset(df, Group == 'education')
 fiteducation <- glm(Value ~ Subgroup+Week, data=df_education, family=Gamma(link = "log"))
 
 summary(fiteducation)
+edu.aov <- aov(Value ~ Subgroup+Week, data = df_education)
+# Summary of the analysis
+summary(edu.aov)
+```
+
+
+```{r emmean education}
+emmip(fiteducation, Subgroup ~ Week)
+eduemm<-emmeans(fiteducation,"Subgroup" , type = "response")
+kable(eduemm)
+```
+
+```{r educationemm, echo = FALSE, results='asis'}
+kable(eduemm)
 ```
 
 GLM by age
@@ -94,3 +149,16 @@ df_age = subset(df, Group == 'age')
 fitage <- glm(Value ~ Subgroup+Week, data=df_age, family=Gamma (link = 'log'))
 summary(fitage)
 ```
+
+```{r emm}
+age.emm <- emmeans(fitage, "Subgroup", type = "response")
+age.emm 
+
+```
+
+
+```{r ageem, echo = FALSE, results='asis'}
+kable(age.emm)
+```
+
+
